@@ -4,22 +4,14 @@ services:
     env: python
     region: oregon
     plan: free
-    buildCommand: "pip install -r requirements-production.txt"
+    buildCommand: "pip install -r requirements.txt"
     startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: datapulse-db
-          property: connectionString
+        value: "sqlite+aiosqlite:///./datapulse.db"
       - key: REDIS_URL
-        sync: false  # You'll add this manually from Upstash
+        value: "redis://default:Ajm_AAIgcDJxDPTntF0VnzmWQm7RGSChadOrvFcZLERI0Xa8wX18zg@real-cod-14783.upstash.io:6379"
       - key: DEBUG
         value: "False"
-      - key: PYTHON_VERSION
-        value: "3.11"
-
-databases:
-  - name: datapulse-db
-    plan: free
-    databaseName: datapulse
-    user: datapulse
+      - key: HEALTH_CHECK_INTERVAL
+        value: "60"
