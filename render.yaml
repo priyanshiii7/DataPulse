@@ -2,6 +2,7 @@ services:
   - type: web
     name: datapulse
     env: python
+    runtime: python-3.11.12
     region: oregon
     plan: free
     buildCommand: "pip install -r requirements.txt"
