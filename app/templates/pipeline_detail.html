@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/" class="text-blue-400 hover:text-blue-300">&larr; Back to Dashboard</a>
+</div>
+
+<div id="pipeline-detail">Loading...</div>
+
+<div class="mt-8">
+    <h2 class="text-xl font-bold mb-4">Anomaly Detection</h2>
+    <div class="bg-gray-800 rounded-lg border border-gray-700 p-6" id="anomaly-section">
+        <p class="text-gray-400">Loading anomaly analysis...</p>
+    </div>
+</div>
+
+<div class="mt-8">
+    <h2 class="text-xl font-bold mb-4">Recent Health Checks</h2>
+    <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-700" id="health-checks">
+            <thead class="bg-gray-900">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Time</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Response Time</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Error</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Get pipeline ID from URL instead of server-side template
+const pathParts = window.location.pathname.split('/');
+const pipelineId = parseInt(pathParts[pathParts.length - 1]);
+
+async function loadPipelineDetails() {
+    try {
+        const [pipelineRes, checksRes] = await Promise.all([
+            fetch('/api/pipelines/' + pipelineId),
+            fetch('/api/health-checks/pipeline/' + pipelineId)
+        ]);
+        
+        if (!pipelineRes.ok) {
+            throw new Error('Pipeline not found');
+        }
+        
+        const pipeline = await pipelineRes.json();
+        const checks = await checksRes.json();
+        
+        updatePipelineUI(pipeline);
+        updateHealthChecksUI(checks);
+        
+        // ========== ADD THIS LINE ==========
+        await loadAnomalyDetection();
+        // ===================================
+    } catch (err) {
+        console.error('Failed to load pipeline:', err);
+        document.getElementById('pipeline-detail').innerHTML = 
+            '<div class="text-red-400">Failed to load pipeline details: ' + err.message + '</div>';
+    }
+}
+
+function updatePipelineUI(p) {
+    document.getElementById('pipeline-detail').innerHTML = `
+        <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">${escapeHtml(p.name)}</h1>
+                    <p class="text-gray-400">${escapeHtml(p.description || 'No description')}</p>
+                </div>
+                <span class="status-${p.current_status} px-3 py-1 rounded-full text-sm font-medium text-white">
+                    ${p.current_status.toUpperCase()}
+                </span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <div>
+                    <div class="text-sm text-gray-400">Type</div>
+                    <div class="font-medium">${p.pipeline_type}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-400">Last Check</div>
+                    <div class="font-medium">
+                        ${p.last_check_time ? new Date(p.last_check_time).toLocaleString() : 'Never'}
+                    </div>
+                </div>
+                <div class="col-span-2">
+                    <div class="text-sm text-gray-400">Endpoint</div>
+                    <div class="font-medium text-sm break-all">${escapeHtml(p.endpoint_url)}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-400">Owner Team</div>
+                    <div class="font-medium">${escapeHtml(p.owner_team || 'N/A')}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-400">Status</div>
+                    <div class="font-medium">${p.is_active ? 'Active' : 'Inactive'}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function updateHealthChecksUI(checks) {
+    const tbody = document.querySelector('#health-checks tbody');
+    if (checks.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-400">No health checks yet</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = checks.map(c => `
+        <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                ${new Date(c.checked_at).toLocaleString()}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="status-${c.status} px-2 py-1 rounded text-xs font-medium text-white">
+                    ${c.status.toUpperCase()}
+                </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                ${c.response_time_ms ? Math.round(c.response_time_ms) + 'ms' : 'N/A'}
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-400">
+                ${escapeHtml(c.error_message || '-')}
+            </td>
+        </tr>
+    `).join('');
+}
+
+// ========== ADD THIS ENTIRE FUNCTION ==========
+async function loadAnomalyDetection() {
+    try {
+        const res = await fetch('/api/metrics/pipeline/' + pipelineId + '/anomalies');
+        const data = await res.json();
+        
+        const section = document.getElementById('anomaly-section');
+        
+        if (data.overall_status === 'anomaly_detected') {
+            section.innerHTML = `
+                <div class="bg-red-900/20 border border-red-500 rounded-lg p-4 mb-4">
+                    <h3 class="text-red-400 font-bold mb-2">  Anomaly Detected</h3>
+                    <p class="text-gray-300">Unusual behavior detected in this pipeline.</p>
+                </div>
+                
+                ${data.response_time_analysis.is_anomaly ? `
+                <div class="mb-4">
+                    <h4 class="font-semibold mb-2">Response Time Anomaly</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-400">Current:</span>
+                            <span class="font-bold text-red-400">${data.response_time_analysis.current_value}ms</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Expected:</span>
+                            <span>${data.response_time_analysis.mean}ms ± ${data.response_time_analysis.std_dev}ms</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Z-Score:</span>
+                            <span class="font-bold">${data.response_time_analysis.z_score}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Confidence:</span>
+                            <span class="uppercase">${data.response_time_analysis.confidence}</span>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+                
+                ${data.error_rate_analysis.is_anomaly ? `
+                <div>
+                    <h4 class="font-semibold mb-2">Error Rate Spike</h4>
+                    <div class="text-sm">
+                        <span class="text-gray-400">Error Rate:</span>
+                        <span class="font-bold text-red-400">${data.error_rate_analysis.error_rate}%</span>
+                        <span class="text-gray-400 ml-2">(${data.error_rate_analysis.failed_checks}/${data.error_rate_analysis.total_checks})</span>
+                    </div>
+                </div>
+                ` : ''}
+            `;
+        } else {
+            section.innerHTML = `
+                <div class="bg-green-900/20 border border-green-500 rounded-lg p-4">
+                    <h3 class="text-green-400 font-bold mb-2">  No Anomalies Detected</h3>
+                    <p class="text-gray-300">Pipeline metrics are within normal ranges.</p>
+                    
+                    ${data.response_time_analysis.mean ? `
+                    <div class="mt-3 text-sm grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="text-gray-400">Avg Response Time:</span>
+                            <span class="font-medium">${data.response_time_analysis.mean}ms</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Std Deviation:</span>
+                            <span class="font-medium">${data.response_time_analysis.std_dev}ms</span>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+    } catch (err) {
+        console.error('Failed to load anomaly detection:', err);
+        document.getElementById('anomaly-section').innerHTML = 
+            '<p class="text-gray-400">Anomaly detection unavailable</p>';
+    }
+}
+// ========== END NEW FUNCTION ==========
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+// Auto-refresh every 5 seconds
+setInterval(loadPipelineDetails, 5000);
+
+// Initial load
+loadPipelineDetails();
+</script>
+{% endblock %}

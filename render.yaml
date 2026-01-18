@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: datapulse
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements-production.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: datapulse-db
+          property: connectionString
+      - key: REDIS_URL
+        sync: false  # You'll add this manually from Upstash
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.11"
+
+databases:
+  - name: datapulse-db
+    plan: free
+    databaseName: datapulse
+    user: datapulse
