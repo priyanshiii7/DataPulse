@@ -115,29 +115,30 @@ Python 3.11+
 Git
 
 Local Development
-bash# 1. Clone repository
+bash
+1. Clone the repository
 git clone https://github.com/YOUR_USERNAME/datapulse.git
 cd datapulse
 
-# 2. Create a virtual environment
+2. Create a virtual environment
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# 3. Install dependencies
+3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Set up environment variables
+4. Set up environment variables
 cp .env.example .env
-# Edit .env with your configuration
+> Edit .env with your configuration
 
-# 5. Initialize database
+5. Initialize database
 python -c "import asyncio; from app.database import init_db; asyncio.run(init_db())"
 
-# 6. Run the application
+6. Run the application
 uvicorn app.main:app --reload
 
-# 7. Open browser
-# Visit: http://localhost:8000
+7. Open browser
+Visit: http://localhost:8000
 Add Your First Pipeline
 
 Click "+ Add Pipeline"
