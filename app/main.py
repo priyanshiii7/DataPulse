@@ -82,3 +82,8 @@ async def health():
         "status": "healthy",
         "redis": cache_service.redis_available
     }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Docker"""
+    return {"status": "healthy", "service": "datapulse"}
