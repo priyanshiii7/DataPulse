@@ -1,16 +1,21 @@
+"""
+DATAPULSE - ALL CODE IN ONE FILE
+Copy each section to the corresponding file
+"""
+
+# ============================================================================
+# FILE: app/api/pipelines.py
+# ============================================================================
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
 import json
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+
 from app.database import get_db
 from app.models import Pipeline
 from app.schemas import PipelineCreate, PipelineUpdate, PipelineResponse
 from app.services.cache import cache_service
-from app.auth import get_current_user
-from app.models import User
 
 router = APIRouter()
 
@@ -66,31 +71,29 @@ async def list_pipelines(
     
     return pipelines
 
-@router.get("/")
-async def list_pipelines(
-    current_user: User = Depends(get_current_user),  # NEW!
-    db: Session = Depends(get_db)
+@router.get("/{pipeline_id}", response_model=PipelineResponse)
+async def get_pipeline(
+    pipeline_id: int,
+    db: AsyncSession = Depends(get_db)
 ):
-    # Only return THIS user's pipelines
-    pipelines = db.query(Pipeline).filter(
-        Pipeline.user_id == current_user.id
-    ).all()
-    return pipelines
-
-@router.post("/")
-async def create_pipeline(
-    pipeline: PipelineCreate,
-    current_user: User = Depends(get_current_user),  # NEW!
-    db: Session = Depends(get_db)
-):
-    # Create pipeline for THIS user only
-    db_pipeline = Pipeline(
-        **pipeline.dict(),
-        user_id=current_user.id  # NEW!
-    )
-    db.add(db_pipeline)
-    db.commit()
-    return db_pipeline
+    """Get pipeline by ID"""
+    cache_key = f"pipeline:{pipeline_id}"
+    cached = await cache_service.get(cache_key)
+    if cached:
+        return cached
+    
+    stmt = select(Pipeline).where(Pipeline.id == pipeline_id)
+    result = await db.execute(stmt)
+    pipeline = result.scalar_one_or_none()
+    
+    if not pipeline:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Pipeline {pipeline_id} not found"
+        )
+    
+    await cache_service.set(cache_key, PipelineResponse.model_validate(pipeline))
+    return pipeline
 
 @router.patch("/{pipeline_id}", response_model=PipelineResponse)
 async def update_pipeline(

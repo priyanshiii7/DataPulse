@@ -21,8 +21,7 @@ class Pipeline(Base):
     __tablename__ = "pipelines"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    name = Column(String, nullable=False)
+    name = Column(String(255), unique=True, nullable=False, index=True)
     description = Column(Text)
     pipeline_type = Column(Enum(PipelineType), nullable=False)
     
@@ -47,8 +46,6 @@ class Pipeline(Base):
     # Relationships
     health_checks = relationship("HealthCheck", back_populates="pipeline", cascade="all, delete-orphan")
     alerts = relationship("Alert", back_populates="pipeline", cascade="all, delete-orphan")
-    owner = relationship("User", back_populates="pipelines")
-
 
 class HealthCheck(Base):
     __tablename__ = "health_checks"
@@ -90,16 +87,3 @@ class Alert(Base):
     
     # Relationships
     pipeline = relationship("Pipeline", back_populates="alerts")
-
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    company_name = Column(String, nullable=False)
-    api_key = Column(String, unique=True, index=True, nullable=False)
-    is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    pipelines = relationship("Pipeline", back_populates="owner")
-
-

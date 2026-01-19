@@ -1,42 +1,36 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
-from pydantic_settings import BaseSettings
-from datetime import datetime
-import pytz
-
 class Settings(BaseSettings):
+    # App Config
     APP_NAME: str = "DataPulse"
     DEBUG: bool = False
-    DATABASE_URL: str
+    
+    # Database
+    DATABASE_URL: str = "sqlite+aiosqlite:///./datapulse.db"
+    
+    # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
-    HEALTH_CHECK_INTERVAL: int = 60
-    HEALTH_CHECK_TIMEOUT: int = 10
+    
+    # Health Check Settings
+    HEALTH_CHECK_INTERVAL: int = 60  # seconds
+    HEALTH_CHECK_TIMEOUT: int = 10   # seconds
     MAX_CONCURRENT_CHECKS: int = 50
-    CACHE_TTL_SECONDS: int = 300
+    
+    # Alerts
     SLACK_WEBHOOK_URL: str = ""
     ALERT_EMAIL: str = ""
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
     
-    # NEW: Add timezone setting
-    TIMEZONE: str = "Asia/Kolkata"  # Indian Standard Time
+    # Cache TTL
+    CACHE_TTL_SECONDS: int = 300
     
     class Config:
         env_file = ".env"
-
-settings = Settings()
-
-# Helper function to get current time in IST
-def get_current_time():
-    """Get current time in configured timezone"""
-    tz = pytz.timezone(settings.TIMEZONE)
-    return datetime.now(tz)
-
-def utc_to_local(utc_dt):
-    """Convert UTC datetime to local timezone"""
-    if utc_dt.tzinfo is None:
-        utc_dt = pytz.utc.localize(utc_dt)
-    tz = pytz.timezone(settings.TIMEZONE)
-    return utc_dt.astimezone(tz)
+        case_sensitive = True
 
 @lru_cache()
 def get_settings() -> Settings:
