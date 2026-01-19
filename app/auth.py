@@ -3,6 +3,7 @@ from fastapi.security import APIKeyHeader
 from sqlalchemy.orm import Session
 from app.models import User
 from app.database import get_db
+from fastapi import Depends
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
