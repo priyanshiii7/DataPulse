@@ -17,7 +17,7 @@ class HealthCheckWorker:
     async def run(self):
         """Main worker loop"""
         self.running = True
-        print("🚀 Health check worker started")
+        print(" Health check worker started")
         
         while self.running:
             try:
@@ -105,4 +105,4 @@ class HealthCheckWorker:
             
             await db.commit()
             
-            print(f"❌ {pipeline.name}: DOWN - {str(e)}")
+            print(f"{pipeline.name}: DOWN - {str(e)}")
