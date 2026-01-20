@@ -12,9 +12,9 @@ services:
       sizeGB: 1
     envVars:
       - key: DATABASE_URL
-        value: "sqlite+aiosqlite:///./datapulse.db"
+        value: "sqlite+aiosqlite:////data/datapulse.db"
       - key: REDIS_URL
-        value: "rediss://default:********@real-cod-14783.upstash.io:6379"
+        value: "rediss://default:ATm_AAIncDJmYjgzODZhZGZlMGI0MzllOGZiODUyYmU3MTBjMTg3MHAyMTQ3ODM@real-cod-14783.upstash.io:6379"
       - key: DEBUG
         value: "False"
       - key: HEALTH_CHECK_INTERVAL
