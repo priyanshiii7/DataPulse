@@ -6,14 +6,20 @@ services:
     plan: free
     buildCommand: "pip install -r requirements.txt"
     startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    disk:
+      name: datapulse-data
+      mountPath: /data
+      sizeGB: 1
     envVars:
       - key: DATABASE_URL
         value: "sqlite+aiosqlite:///./datapulse.db"
       - key: REDIS_URL
-        value: "redis://default:Ajm_AAIgcDJxDPTntF0VnzmWQm7RGSChadOrvFcZLERI0Xa8wX18zg@real-cod-14783.upstash.io:6379"
+        value: "rediss://default:********@real-cod-14783.upstash.io:6379"
       - key: DEBUG
         value: "False"
       - key: HEALTH_CHECK_INTERVAL
         value: "60"
       - key: PYTHON_VERSION
         value: "3.11.9"
+      - key: TIMEZONE
+        value: "Asia/Kolkata"

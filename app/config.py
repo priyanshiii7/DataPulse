@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     
     # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:///./datapulse.db"
+    DATABASE_URL: str = "sqlite+aiosqlite:////data/datapulse.db"
     
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
