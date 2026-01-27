@@ -1,6 +1,6 @@
 # DataPulse - A production-ready monitoring platform for data pipelines with automated health checks, anomaly detection, and real-time dashboards.
 
-# Table of Contents
+>> Table of Contents
 
 Overview
 Key Features
