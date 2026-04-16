@@ -15,7 +15,8 @@ Screenshots
 
 # Overview
 DataPulse solves a critical problem in data engineering: How do you monitor hundreds of data pipelines in real-time?
-In production environments, data pipelines power everything from customer analytics to ML model training. When pipelines fail silently, businesses lose money. DataPulse provides:
+In production environments, data pipelines power everything from customer analytics to ML model training. When pipelines fail silently, businesses lose money. 
+Silent pipeline failures are expensive. DataPulse came out of watching teams discover data quality issues hours after they started — by which point, downstream systems were already affected. This is the monitoring layer I wished existed.DataPulse provides:
 
 > Centralized monitoring - All pipeline health in one dashboard
 > Automated health checks - No manual checking needed
@@ -62,7 +63,7 @@ Efficient time-series queries for historical data
 
 5. Production Ready
 
-Deployed on Render.com (free tier)
+Deployed on Render.com
 PostgreSQL for data persistence
 Proper error handling and logging
 Horizontal scalability (add more workers)
@@ -83,8 +84,8 @@ Alerts → Sent to Slack on failures
 
 FastAPI - Modern async Python web framework
 SQLAlchemy 2.0 - Async ORM for database operations
-PostgreSQL - Primary data store (Neon.tech free tier)
-Redis - Caching layer (Upstash free tier)
+PostgreSQL - Primary data store
+Redis - Caching layer
 Pydantic - Data validation and serialization
 
 > Frontend
@@ -117,7 +118,7 @@ Git
 Local Development
 bash
 1. Clone the repository
-git clone https://github.com/YOUR_USERNAME/datapulse.git
+git clone https://github.com/priyanshiii7/datapulse.git
 cd datapulse
 
 2. Create a virtual environment
@@ -129,7 +130,7 @@ pip install -r requirements.txt
 
 4. Set up environment variables
 cp .env.example .env
-> Edit .env with your configuration
+> Edit .env with configuration
 
 5. Initialize database
 python -c "import asyncio; from app.database import init_db; asyncio.run(init_db())"
@@ -141,7 +142,7 @@ uvicorn app.main:app --reload
 Visit: http://localhost:8000
 Add Your First Pipeline
 
-Click "+ Add Pipeline"
+Click "+ Add Pipeline."
 Fill in details:
 
 Name: Test API
@@ -149,7 +150,7 @@ URL: https://httpbin.org/status/200
 Type: batch
 
 
-Wait ~60 seconds for first health check
+Wait ~60 seconds for the first health check
 Watch it turn green!
 
 
@@ -213,10 +214,8 @@ GitHub: @priyanshiii7
 
 # Acknowledgments
 
-Built for demonstrating distributed systems knowledge
 Inspired by real production monitoring needs
 Uses modern Python async patterns throughout
-Twitter: @yourhandle
 
 
 <div align="center">
